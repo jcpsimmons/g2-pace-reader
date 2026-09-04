@@ -1,4 +1,4 @@
-import { parseEpub } from './epub'
+import { importEpubToLibrary } from './import-book'
 import { createLibrary, type Book, type BookProgress } from './library'
 
 type MirrorUpdate = {
@@ -183,15 +183,7 @@ async function importBook(file: File) {
   try {
     if (!file.name.toLowerCase().endsWith('.epub')) throw new Error('Choose an EPUB file')
     if (file.size > MAX_EPUB_BYTES) throw new Error('EPUB must be smaller than 30 MB')
-    const parsed = parseEpub(await file.arrayBuffer())
-    if (!parsed.text.trim()) throw new Error('No readable text was found in this EPUB')
-    const fallbackTitle = file.name.replace(/\.epub$/i, '') || 'Untitled book'
-    const book = await library.add({
-      title: parsed.title || fallbackTitle,
-      author: parsed.author || 'Unknown author',
-      originalFilename: file.name,
-      text: parsed.text,
-    })
+    const book = await importEpubToLibrary(library, await file.arrayBuffer(), file.name)
     setLibraryStatus(`${book.title} added`)
     await renderLibrary()
   } catch (error) {

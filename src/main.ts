@@ -1,3 +1,4 @@
+import './companion'
 import {
   CreateStartUpPageContainer,
   DeviceConnectType,
@@ -10,11 +11,11 @@ import {
 } from '@evenrealities/even_hub_sdk'
 import { formatReadingFrame, formatStatus } from './display'
 import { actionForEvenHubEvent, type ReaderEventAction } from './events'
+import { persistReaderProgress, SAVE_EVERY_WORDS } from './progress'
 import { createReader, type Reader } from './reader'
 
 const STORAGE_KEY = 'pace-reader.session.v1'
 const BRIDGE_TIMEOUT_MS = 2500
-const SAVE_EVERY_WORDS = 10
 
 type SavedSession = {
   version: 1
@@ -295,27 +296,25 @@ async function loadSession(): Promise<SavedSession | null> {
 
 async function persistSession(force: boolean) {
   if (!reader) return
-  const state = reader.getState()
-  if (!force && !state.complete && state.index - lastSavedIndex < SAVE_EVERY_WORDS) return
   if (activeBookId) {
     const bookId = activeBookId
-    const progress = {
-      snapshot: reader.serialize(),
-      index: state.index,
-      wpm: state.wpm,
-      complete: state.complete,
-    }
     try {
-      const pending = progressQueue.then(() => window.PaceReaderCompanion?.saveBookProgress(bookId, progress))
+      const pending = progressQueue.then(() => persistReaderProgress(
+        reader!,
+        lastSavedIndex,
+        force,
+        progress => window.PaceReaderCompanion?.saveBookProgress(bookId, progress) ?? Promise.resolve(),
+      ))
       progressQueue = pending.then(() => undefined, () => undefined)
-      await pending
-      lastSavedIndex = state.index
+      lastSavedIndex = await pending
     } catch (error) {
       console.error('Pace Reader book progress save failed:', error)
       window.PaceReaderCompanion?.setLibraryStatus('Book progress save delayed', true)
     }
     return
   }
+  const state = reader.getState()
+  if (!force && !state.complete && state.index - lastSavedIndex < SAVE_EVERY_WORDS) return
   if (bridgeFaulted) return
   const value: SavedSession = { version: 1, text: sourceText, reader: reader.serialize() }
   try {
