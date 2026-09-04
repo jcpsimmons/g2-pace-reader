@@ -9,32 +9,32 @@ The official [Even Hub App Submission and QA Guidelines](https://hub.evenrealiti
 - Monochrome or greyscale icon and background assets. Color assets are rejected.
 - Screenshots that match what the app renders on the device.
 
-The official page does not publish exact pixel dimensions or file-format requirements for these portal-uploaded assets. Do not infer dimensions or formats from this repository. Confirm the portal's live upload fields at submission time.
+The production portal's publicly served frontend bundle was also inspected on 2026-09-04. Its client-side checks require a 24 by 24 monochrome PNG icon and 576 by 288 PNG screenshots, with no more than 8 screenshots.
 
 ## Repository asset
 
-`pace-reader-icon.svg` is a deterministic, greyscale source icon that can be rendered to any dimensions accepted by the portal. Its SVG `viewBox` is `0 0 512 512`, and its source dimensions are 512 by 512 CSS pixels. It contains no external resources, scripts, gradients, or color fills.
+`pace-reader-icon.png` is the upload-ready 24 by 24, 1-bit greyscale PNG icon.
 
-The SVG is a source asset, not proof that the portal accepts SVG uploads. If the portal requires raster files, export this source to the exact dimensions and format shown by the portal.
+`pace-reader-icon.svg` is its deterministic source. Its SVG `viewBox` is `0 0 512 512`, and its source dimensions are 512 by 512 CSS pixels. It contains no external resources, scripts, gradients, or color fills.
 
 ## Prepared simulator captures
 
 - `pace-reader-glasses-reading.png`: 576 by 288 monochrome G2 framebuffer while reading.
 - `pace-reader-glasses-paused.png`: 576 by 288 monochrome G2 framebuffer after a tap pause.
-- `pace-reader-companion.png`: 1200 by 1536 phone companion capture from the same simulator build.
+- `pace-reader-companion.png`: 1200 by 1536 phone companion reference capture from the same simulator build. It is not a portal screenshot because its dimensions do not match the portal requirement.
 
 The simulator API returns the G2 framebuffer as transparent green RGBA. The two glasses captures were composited onto black without resizing or changing the rendered pixels, matching the display preview used in the simulator.
 
-## Portal-only checks
+## Portal upload set
 
-- Foreground icon upload: portal-required asset; exact dimensions and format are not published in the official documentation.
-- Background icon upload: portal-required asset; exact dimensions and format are not published in the official documentation.
-- Device screenshots: use the prepared simulator captures if their dimensions and format pass the live portal fields.
+- App icon: `pace-reader-icon.png`
+- Device screenshots: `pace-reader-glasses-reading.png` and `pace-reader-glasses-paused.png`
+- Cover background: select one of the assets supplied by the portal. The current portal generates its styled cover rather than accepting a free-form background upload.
 - Listing metadata and release notes: entered in the portal; source copy is in [`store/listing.md`](../listing.md).
 
 ## Submission check
 
-Before upload, inspect the live portal fields and verify that the exported icon assets are greyscale, legible, non-empty, and in the portal's accepted dimensions and format. Verify that every uploaded screenshot matches the packed build.
+Before upload, confirm that the live portal still presents the same limits. Verify that every uploaded screenshot matches the packed build.
 
 Official references:
 

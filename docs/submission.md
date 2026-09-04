@@ -21,10 +21,15 @@ Checked on 2026-09-04 against the official Even Realities packaging, CLI, and ap
 
 - [ ] Create the app in the Even Hub developer portal
 - [ ] Upload the `.ehpk`
-- [ ] Add the description and first release notes from `store/listing.md`
-- [ ] Upload non-empty monochrome foreground and background assets
-- [ ] Upload the matching simulator screenshots in `store/assets`
-- [ ] Supply the public privacy policy URL
+- [x] Prepare a 24 by 24 monochrome PNG icon
+- [x] Prepare two matching 576 by 288 PNG simulator screenshots
+- [x] Prepare the portal name, tagline, category, tags, description, and change log in `store/listing.md`
+- [ ] Add the listing fields from `store/listing.md`
+- [ ] Upload `store/assets/pace-reader-icon.png`
+- [ ] Select a portal-provided cover background and upload the two glasses screenshots in `store/assets`
+- [ ] Complete the portal privacy questionnaire using `store/listing.md`
+- [ ] Confirm developer name, public contact email, telephone, and address before entering them
+- [ ] Use the public privacy policy at `https://github.com/jcpsimmons/g2-pace-reader/blob/master/PRIVACY.md`
 - [ ] Move the build from Draft to Test
 
 ## Real G2 beta gate
@@ -42,6 +47,19 @@ Checked on 2026-09-04 against the official Even Realities packaging, CLI, and ap
 ## Submission rule
 
 Submit for review only after every real G2 beta gate passes. Released versions are immutable, so later fixes require a new version.
+
+## Current portal limits
+
+Verified on 2026-09-04 from the production portal's publicly served frontend bundle:
+
+- Name: 20 characters
+- Tagline: 50 characters
+- Description: 2,000 characters
+- Category: required
+- Tags: up to 5, with 20 characters per tag
+- Change log: 500 characters
+- Icon: 24 by 24 monochrome PNG
+- Screenshots: up to 8, each exactly 576 by 288 PNG
 
 Official references:
 
