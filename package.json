@@ -1,7 +1,7 @@
 {
   "name": "g2-pace-reader",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,7 +15,8 @@
   },
   "dependencies": {
     "@evenrealities/even_hub_sdk": "0.0.14",
-    "@evenrealities/pretext": "0.1.4"
+    "@evenrealities/pretext": "0.1.4",
+    "fflate": "^0.8.3"
   },
   "devDependencies": {
     "@evenrealities/evenhub-cli": "0.1.14",

@@ -25,12 +25,15 @@ type SavedSession = {
 const bridge = await waitForEvenAppBridge()
 let reader: Reader | null = null
 let sourceText = ''
+let activeBookId: string | null = null
+let activeBookTitle = ''
 let timer: number | undefined
 let cleanedUp = false
 let exiting = false
 let bridgeFaulted = false
 let lastSavedIndex = -1
 let bridgeQueue: Promise<unknown> = Promise.resolve()
+let progressQueue: Promise<unknown> = Promise.resolve()
 
 const menu = new MenuContainerProperty({
   menuItems: [
@@ -103,6 +106,9 @@ const unsubscribeEvents = bridge.onEvenHubEvent(event => {
 })
 
 const unsubscribeDevice = bridge.onDeviceStatusChanged(status => {
+  if (status.connectType === DeviceConnectType.Connected) window.PaceReaderCompanion?.setDeviceConnection('connected')
+  else if (status.connectType === DeviceConnectType.Disconnected || status.connectType === DeviceConnectType.ConnectionFailed) window.PaceReaderCompanion?.setDeviceConnection('disconnected')
+  else window.PaceReaderCompanion?.setDeviceConnection('unknown')
   if (status.connectType !== DeviceConnectType.Disconnected && status.connectType !== DeviceConnectType.ConnectionFailed) return
   cancelTimer()
   if (reader && !reader.getState().complete) reader.actions.pause()
@@ -110,22 +116,55 @@ const unsubscribeDevice = bridge.onDeviceStatusChanged(status => {
 })
 
 window.addEventListener('pace-reader:start', event => {
-  const detail = (event as CustomEvent<{ text?: string; wpm?: number }>).detail
+  const detail = (event as CustomEvent<{
+    text?: string
+    wpm?: number
+    bookId?: string
+    bookTitle?: string
+    resume?: string
+  }>).detail
   const text = detail?.text?.trim()
   if (!text) return
-  startReading(text, detail.wpm ?? 200).catch(reportRuntimeError)
+  startReading(text, detail.wpm ?? 200, {
+    bookId: detail.bookId,
+    bookTitle: detail.bookTitle,
+    resume: detail.resume,
+  }).catch(reportRuntimeError)
 })
-window.addEventListener('pace-reader:ready', () => syncCompanion(true))
+window.addEventListener('pace-reader:ready', () => {
+  syncCompanion(true)
+  window.dispatchEvent(new Event('pace-reader:bridge-ready'))
+})
+window.addEventListener('pace-reader:book-deleted', event => {
+  const bookId = (event as CustomEvent<{ bookId?: string }>).detail?.bookId
+  if (!bookId || bookId !== activeBookId) return
+  cancelTimer()
+  reader = null
+  sourceText = ''
+  activeBookId = null
+  activeBookTitle = ''
+  renderReader().catch(reportRuntimeError)
+  syncCompanion()
+})
 
 window.addEventListener('beforeunload', cleanup)
 syncCompanion(true)
+window.dispatchEvent(new Event('pace-reader:bridge-ready'))
 if (reader && !reader.getState().paused && !reader.getState().complete) scheduleNext()
 
-async function startReading(text: string, wpm: number) {
+async function startReading(
+  text: string,
+  wpm: number,
+  book: { bookId?: string; bookTitle?: string; resume?: string } = {},
+) {
   cancelTimer()
   bridgeFaulted = false
   sourceText = text
-  reader = createReader(text, { wpm })
+  activeBookId = book.bookId ?? null
+  activeBookTitle = book.bookTitle ?? ''
+  reader = createReader(text, { wpm, resume: book.resume })
+  if (reader.getState().complete) reader.actions.restart()
+  else if (reader.getState().paused) reader.actions.resume()
   lastSavedIndex = -1
   await renderReader()
   await persistSession(true)
@@ -222,7 +261,7 @@ async function renderReader() {
 }
 
 function displayContent(): string {
-  if (!reader) return '\nOPEN THE EVEN APP\n\nPaste text, choose a pace, and tap Start.\n\nUse only while stationary.'
+  if (!reader) return '\nOPEN THE EVEN APP\n\nImport an EPUB or continue a book.\n\nUse only while stationary.'
   const state = reader.getState()
   return `\n${formatReadingFrame(state.frame)}\n\n\n${formatStatus(state)}`
 }
@@ -255,9 +294,29 @@ async function loadSession(): Promise<SavedSession | null> {
 }
 
 async function persistSession(force: boolean) {
-  if (!reader || bridgeFaulted) return
+  if (!reader) return
   const state = reader.getState()
   if (!force && !state.complete && state.index - lastSavedIndex < SAVE_EVERY_WORDS) return
+  if (activeBookId) {
+    const bookId = activeBookId
+    const progress = {
+      snapshot: reader.serialize(),
+      index: state.index,
+      wpm: state.wpm,
+      complete: state.complete,
+    }
+    try {
+      const pending = progressQueue.then(() => window.PaceReaderCompanion?.saveBookProgress(bookId, progress))
+      progressQueue = pending.then(() => undefined, () => undefined)
+      await pending
+      lastSavedIndex = state.index
+    } catch (error) {
+      console.error('Pace Reader book progress save failed:', error)
+      window.PaceReaderCompanion?.setLibraryStatus('Book progress save delayed', true)
+    }
+    return
+  }
+  if (bridgeFaulted) return
   const value: SavedSession = { version: 1, text: sourceText, reader: reader.serialize() }
   try {
     const saved = await enqueueBridge(() => bridge.setLocalStorage(STORAGE_KEY, JSON.stringify(value)))
@@ -274,7 +333,7 @@ function syncCompanion(includeDraft = false) {
   if (includeDraft && sourceText) companion.setDraft(sourceText, reader?.getState().wpm ?? 200)
   if (!reader) {
     companion.setReadingState('ready')
-    companion.updateMirror({ title: 'Ready when you are', text: 'Paste text above to begin.', progress: '0 / 0', wpm: 200, time: '0 min' })
+    companion.updateMirror({ title: 'Ready for a book', text: 'Import an EPUB or continue from your library.', progress: '0 / 0', wpm: 200, time: '0 min' })
     return
   }
 
@@ -283,7 +342,7 @@ function syncCompanion(includeDraft = false) {
   const remainingMinutes = Math.max(0, (state.totalWords - state.index - 1) / state.wpm)
   companion.setReadingState(state.complete ? 'complete' : state.paused ? 'paused' : 'reading')
   companion.updateMirror({
-    title: state.complete ? 'Reading complete' : state.paused ? 'Paused' : 'Reading now',
+    title: activeBookTitle || (state.complete ? 'Reading complete' : state.paused ? 'Paused' : 'Reading now'),
     text: frameText,
     progress: `${Math.min(state.index + 1, state.totalWords)} / ${state.totalWords}`,
     wpm: state.wpm,
