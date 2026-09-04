@@ -34,13 +34,13 @@ Local app storage. No special permissions. No account required. No app-controlle
 
 ## Change log
 
-Add local EPUB 2/3 import, an on-device book library, per-book position and WPM, Continue reading, deletion controls, and an Even-native companion design.
+Add chapter picking, skip Gutenberg front matter on Start, and keep per-book resume. Re-import existing EPUBs to load chapter lists.
 
 ## Listing review notes
 
 - Product name: Pace Reader
 - Package ID: `com.jcpsimmons.pacereader`
-- Version: `0.2.0`
+- Version: `0.3.0`
 - Supported language: English
 - Stationary-use warning must remain visible in the listing and first-run experience.
 - Real-hardware update cadence is not verified until beta testing is complete.

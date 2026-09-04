@@ -5,19 +5,27 @@ export type BookProgress = {
   complete: boolean
 }
 
+export type BookChapter = {
+  title: string
+  startIndex: number
+  wordCount: number
+  frontMatter: boolean
+}
+
 export type Book = {
   id: string
   title: string
   author: string
   originalFilename: string
   text: string
+  chapters: BookChapter[]
   totalWords: number
   addedAt: number
   updatedAt: number
   progress: BookProgress
 }
 
-export type BookInput = Pick<Book, 'title' | 'author' | 'originalFilename' | 'text'>
+export type BookInput = Pick<Book, 'title' | 'author' | 'originalFilename' | 'text'> & { chapters?: BookChapter[] }
 export type LibraryStore = { get(id: string): Promise<Book | undefined>; put(book: Book): Promise<void>; list(): Promise<Book[]>; delete(id: string): Promise<void> }
 
 export async function contentId(text: string): Promise<string> {
@@ -47,6 +55,7 @@ export function createLibrary(store?: LibraryStore) {
         const book: Book = {
           ...input,
           id,
+          chapters: input.chapters ?? prior?.chapters ?? [],
           totalWords: wordCount(input.text),
           addedAt: prior?.addedAt ?? now,
           updatedAt: now,
@@ -58,11 +67,12 @@ export function createLibrary(store?: LibraryStore) {
     },
     async list() {
       await mutationQueue
-      return (await backend.list()).sort((a, b) => b.updatedAt - a.updatedAt)
+      return (await backend.list()).map(normalizeBook).sort((a, b) => b.updatedAt - a.updatedAt)
     },
     async get(id: string) {
       await mutationQueue
-      return backend.get(id)
+      const book = await backend.get(id)
+      return book ? normalizeBook(book) : undefined
     },
     updateProgress(id: string, progress: BookProgress) {
       return mutate(async () => {
@@ -79,6 +89,9 @@ export function createLibrary(store?: LibraryStore) {
   }
 }
 
+function normalizeBook(book: Book): Book {
+  return { ...book, chapters: book.chapters ?? [] }
+}
 function wordCount(text: string) { return text.trim() ? text.trim().split(/\s+/).length : 0 }
 function memoryStore(): LibraryStore {
   const data = new Map<string, Book>()

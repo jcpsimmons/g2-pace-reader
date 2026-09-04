@@ -98,6 +98,7 @@ h3 { margin: 0; font-size: 20px; font-weight: 400; line-height: 1.15; letter-spa
 .progress-track { height: 3px; margin-bottom: 16px; overflow: hidden; border-radius: var(--radius-default); background: var(--color-surface-lighter); }
 .progress-track > span { display: block; height: 100%; background: var(--color-accent); }
 
+.continue-actions { display: grid; gap: var(--spacing-same); }
 .primary-button, .secondary-button {
   min-height: 42px;
   border: 0;
@@ -245,12 +246,37 @@ textarea::placeholder { color: var(--color-text-dim); }
 .safety-note strong { color: var(--color-text); font-weight: 400; }
 .privacy-note { margin: 15px 0 0; color: var(--color-text-dim); text-align: center; font-size: 10px; }
 
+.chapter-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow: auto;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+.chapter-sheet {
+  width: min(100%, 580px);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: max(var(--spacing-section), env(safe-area-inset-top)) var(--spacing-margin) calc(32px + env(safe-area-inset-bottom));
+}
+.chapter-header { display: flex; align-items: center; gap: 12px; margin-bottom: var(--spacing-section); }
+.chapter-header .icon-button { margin-left: 0; }
+.chapter-hint { margin: 10px 2px 12px; color: var(--color-text-dim); font-size: 12px; line-height: 1.4; }
+.chapter-hint:empty { display: none; }
+#chapterContinue { margin-bottom: var(--spacing-cross); }
+.front-matter { margin-bottom: var(--spacing-cross); overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-default); background: var(--color-surface); }
+.front-matter summary { padding: var(--spacing-card); cursor: pointer; font-size: 15px; font-weight: 400; list-style: none; color: var(--color-text-dim); }
+.front-matter summary::-webkit-details-marker { display: none; }
+.front-matter .book-list { border: 0; border-top: 1px solid var(--color-border); border-radius: 0; }
+
 .primary-button:focus-visible,
 .secondary-button:focus-visible,
 .icon-button:focus-visible,
 .book-open:focus-visible,
 .delete-button:focus-visible,
 .empty-library:focus-visible,
+#chapterBack:focus-visible,
 input[type='range']:focus-visible,
 textarea:focus-visible,
 summary:focus-visible {

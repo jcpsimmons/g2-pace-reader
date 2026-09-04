@@ -41,6 +41,7 @@ export type Reader = {
     increaseWpm: () => ReaderState
     decreaseWpm: () => ReaderState
     restart: () => ReaderState
+    jumpTo: (index: number) => ReaderState
     rewindSentence: () => ReaderState
   }
 }
@@ -91,8 +92,9 @@ export function createReader(text: string, options: ReaderOptions | string = {})
     wpm = clampWpm(wpm + delta)
     return snapshot()
   }
-  const restart = (): ReaderState => {
-    index = 0
+  const restart = (): ReaderState => jumpTo(0)
+  const jumpTo = (nextIndex: number): ReaderState => {
+    index = clampInt(nextIndex, 0, Math.max(0, words.length - 1))
     complete = false
     paused = false
     return snapshot()
@@ -123,6 +125,7 @@ export function createReader(text: string, options: ReaderOptions | string = {})
       increaseWpm: () => adjustWpm(25),
       decreaseWpm: () => adjustWpm(-25),
       restart,
+      jumpTo,
       rewindSentence,
     },
   }

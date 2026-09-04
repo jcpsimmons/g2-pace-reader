@@ -64,6 +64,14 @@ describe('speed reader', () => {
     expect(resumed.getState().index).toBe(1)
   })
 
+  it('jumps to a chapter start without marking the book complete', () => {
+    const reader = createReader('zero one two three four five')
+    reader.tick()
+    reader.tick()
+    reader.actions.jumpTo(4)
+    expect(reader.getState()).toMatchObject({ index: 4, complete: false, paused: false, frame: { current: 'four' } })
+  })
+
   it('adds capped dwell for words longer than eight letters', () => {
     const reader = createReader('short extraordinary')
     reader.tick()

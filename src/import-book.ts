@@ -1,4 +1,4 @@
-import { parseEpub, type EpubBook } from './epub'
+import { catalogChapters, parseEpub, type EpubBook } from './epub'
 import type { Book, BookInput } from './library'
 
 export function bookInputFromEpub(parsed: EpubBook, filename: string): BookInput {
@@ -9,6 +9,7 @@ export function bookInputFromEpub(parsed: EpubBook, filename: string): BookInput
     author: parsed.author || 'Unknown author',
     originalFilename: filename,
     text: parsed.text,
+    chapters: catalogChapters(parsed.chapters),
   }
 }
 

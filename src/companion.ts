@@ -1,5 +1,6 @@
+import { chapterAt, firstReadableChapter } from './epub'
 import { importEpubToLibrary } from './import-book'
-import { createLibrary, type Book, type BookProgress } from './library'
+import { createLibrary, type Book, type BookChapter, type BookProgress } from './library'
 
 type MirrorUpdate = {
   title?: string
@@ -123,7 +124,24 @@ function mountCompanion() {
 
       <aside class="safety-note"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4.6 2.8 8.7 7 10 4.2-1.3 7-5.4 7-10V6l-7-3Z"/><path d="M12 8v5M12 16.5v.5"/></svg><p><strong>Read while stationary.</strong> Stop if you feel eye strain, dizziness, or reduced awareness.</p></aside>
       <p class="privacy-note">Books stay on this device. No account, analytics, or network access.</p>
-    </main>`
+    </main>
+    <div id="chapterOverlay" class="chapter-overlay" hidden>
+      <div class="chapter-sheet">
+        <header class="chapter-header">
+          <button id="chapterBack" class="icon-button" type="button" aria-label="Back">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M15 6 9 12l6 6"/></svg>
+          </button>
+          <div>
+            <p class="app-kicker" id="chapterBookAuthor"></p>
+            <h2 id="chapterBookTitle">Chapters</h2>
+          </div>
+        </header>
+        <div id="chapterContinue"></div>
+        <p id="chapterHint" class="chapter-hint"></p>
+        <div id="chapterFront"></div>
+        <div id="chapterList" class="book-list"></div>
+      </div>
+    </div>`
 
   const textInput = document.querySelector<HTMLTextAreaElement>('#readingText')!
   const slider = document.querySelector<HTMLInputElement>('#wpmSlider')!
@@ -163,6 +181,7 @@ function mountCompanion() {
     startWhenReady(api.getState())
   })
   document.querySelector('#importBook')!.addEventListener('click', () => fileInput.click())
+  document.querySelector('#chapterBack')!.addEventListener('click', closeChapterSheet)
   fileInput.addEventListener('change', () => {
     const file = fileInput.files?.[0]
     if (file) void importBook(file)
@@ -234,14 +253,28 @@ function createContinueCard(book: Book) {
   const meta = document.createElement('div')
   meta.className = 'book-meta'
   const remaining = Math.max(0, book.totalWords - book.progress.index - 1)
-  meta.textContent = `${percent}% · ${formatTime(remaining, book.progress.wpm)} left`
+  const current = chapterAt(book.chapters ?? [], book.progress.index)
+  meta.textContent = current
+    ? `${current.title} · ${percent}%`
+    : `${percent}% · ${formatTime(remaining, book.progress.wpm)} left`
   const progress = createProgress(percent, book.title)
+  const actions = document.createElement('div')
+  actions.className = 'continue-actions'
   const button = document.createElement('button')
   button.type = 'button'
   button.className = 'primary-button'
   button.textContent = bookAction(book)
   button.addEventListener('click', () => void startBook(book))
-  content.append(title, author, meta, progress, button)
+  actions.append(button)
+  if ((book.chapters ?? []).length) {
+    const chapters = document.createElement('button')
+    chapters.type = 'button'
+    chapters.className = 'secondary-button'
+    chapters.textContent = 'Chapters'
+    chapters.addEventListener('click', () => openChapterSheet(book))
+    actions.append(chapters)
+  }
+  content.append(title, author, meta, progress, actions)
   card.append(cover, content)
   return card
 }
@@ -265,7 +298,10 @@ function createBookRow(book: Book) {
   chevron.setAttribute('aria-hidden', 'true')
   chevron.textContent = '›'
   open.append(copy, chevron)
-  open.addEventListener('click', () => void startBook(book))
+  open.addEventListener('click', () => {
+    if ((book.chapters ?? []).length) openChapterSheet(book)
+    else void startBook(book)
+  })
   const remove = document.createElement('button')
   remove.type = 'button'
   remove.className = 'delete-button'
@@ -299,8 +335,82 @@ function createProgress(percent: number, title: string) {
   return track
 }
 
-async function startBook(book: Book) {
+function openChapterSheet(book: Book) {
+  const overlay = document.querySelector<HTMLElement>('#chapterOverlay')
+  const list = document.querySelector<HTMLDivElement>('#chapterList')
+  const front = document.querySelector<HTMLDivElement>('#chapterFront')
+  const continueSlot = document.querySelector<HTMLDivElement>('#chapterContinue')
+  const hint = document.querySelector<HTMLElement>('#chapterHint')
+  const title = document.querySelector<HTMLElement>('#chapterBookTitle')
+  const author = document.querySelector<HTMLElement>('#chapterBookAuthor')
+  if (!overlay || !list || !front || !continueSlot || !hint || !title || !author) return
+  title.textContent = book.title
+  author.textContent = book.author
+  list.replaceChildren()
+  front.replaceChildren()
+  continueSlot.replaceChildren()
+  const chapters = book.chapters ?? []
+  const current = chapterAt(chapters, book.progress.index)
+  hint.textContent = chapters.length
+    ? 'Start a chapter. Gutenberg notices and contents stay under Front matter.'
+    : 'Re-import this EPUB to pick chapters. Older copies only stored the full text.'
+  if (chapters.length) {
+    const continueButton = document.createElement('button')
+    continueButton.type = 'button'
+    continueButton.className = 'primary-button'
+    continueButton.textContent = bookAction(book)
+    continueButton.addEventListener('click', () => void startBook(book))
+    continueSlot.append(continueButton)
+  }
+  const body = chapters.filter(chapter => !chapter.frontMatter)
+  const extras = chapters.filter(chapter => chapter.frontMatter)
+  if (extras.length) {
+    const details = document.createElement('details')
+    details.className = 'front-matter'
+    const summary = document.createElement('summary')
+    summary.textContent = `Front matter · ${extras.length}`
+    details.append(summary)
+    const extraList = document.createElement('div')
+    extraList.className = 'book-list'
+    for (const chapter of extras) extraList.append(createChapterRow(book, chapter, current))
+    details.append(extraList)
+    front.append(details)
+  }
+  for (const chapter of body) list.append(createChapterRow(book, chapter, current))
+  overlay.hidden = false
+}
+
+function closeChapterSheet() {
+  const overlay = document.querySelector<HTMLElement>('#chapterOverlay')
+  if (overlay) overlay.hidden = true
+}
+
+function createChapterRow(book: Book, chapter: BookChapter, current?: BookChapter) {
+  const row = document.createElement('article')
+  row.className = `book-row${current === chapter ? ' active-book' : ''}`
+  const open = document.createElement('button')
+  open.type = 'button'
+  open.className = 'book-open'
+  const copy = document.createElement('span')
+  copy.className = 'book-copy'
+  const title = document.createElement('strong')
+  title.textContent = chapter.title
+  const meta = document.createElement('small')
+  meta.textContent = `${chapter.wordCount.toLocaleString()} words · ${formatTime(chapter.wordCount, book.progress.wpm || 200)}`
+  copy.append(title, meta)
+  const chevron = document.createElement('span')
+  chevron.className = 'chevron'
+  chevron.setAttribute('aria-hidden', 'true')
+  chevron.textContent = '›'
+  open.append(copy, chevron)
+  open.addEventListener('click', () => void startBook(book, chapter))
+  row.append(open)
+  return row
+}
+
+async function startBook(book: Book, chapter?: BookChapter) {
   activeBookId = book.id
+  closeChapterSheet()
   const quickRead = document.querySelector<HTMLDetailsElement>('.quick-read')
   if (quickRead) quickRead.open = false
   const slider = document.querySelector<HTMLInputElement>('#wpmSlider')
@@ -309,14 +419,33 @@ async function startBook(book: Book) {
     slider.value = String(wpm)
     slider.dispatchEvent(new Event('input'))
   }
+  const resume = resumeFor(book, chapter)
+  const startIndex = typeof resume === 'object' && resume && 'index' in resume
+    ? Number(resume.index ?? 0)
+    : chapter?.startIndex ?? firstReadableChapter(book.chapters ?? [])?.startIndex ?? 0
   startWhenReady({
     text: book.text,
     wpm,
     bookId: book.id,
-    bookTitle: book.title,
-    resume: book.progress.complete ? undefined : book.progress.snapshot,
+    bookTitle: chapter?.title || book.title,
+    resume,
+    restartIndex: chapterAt(book.chapters ?? [], startIndex)?.startIndex ?? startIndex,
   })
   await renderLibrary()
+}
+
+function resumeFor(book: Book, chapter?: BookChapter) {
+  if (chapter) {
+    return { index: chapter.startIndex, wpm: book.progress.wpm || 200, complete: false, paused: false }
+  }
+  if (!book.progress.complete && book.progress.index > 0 && book.progress.snapshot) {
+    return book.progress.snapshot
+  }
+  const start = firstReadableChapter(book.chapters ?? [])
+  if (start && start.startIndex > 0) {
+    return { index: start.startIndex, wpm: book.progress.wpm || 200, complete: false, paused: false }
+  }
+  return book.progress.complete ? undefined : book.progress.snapshot
 }
 
 function startWhenReady(detail: Record<string, unknown>) {

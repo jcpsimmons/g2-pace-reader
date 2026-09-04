@@ -21,7 +21,7 @@ Pace Reader stores imported book text and per-book reading progress locally on t
 ## EPUB library
 
 - Import local EPUB 2 and EPUB 3 files from the phone's file picker.
-- Read chapters in the book's declared spine order.
+- Split on headings, pick a chapter, and skip Gutenberg license/front matter on Start.
 - Preserve title, author, current word, completion state, and WPM per book.
 - Continue the most recently read book from the library home screen.
 - Delete a book and its saved place from the device at any time.
@@ -36,7 +36,7 @@ EPUB parsing happens entirely in the plugin. Imported files and extracted text a
 | Scroll up | Increase speed by 25 WPM |
 | Scroll down | Decrease speed by 25 WPM |
 | Menu: Rewind sentence | Return to the start of the current sentence |
-| Menu: Restart reading | Return to the first word |
+| Menu: Restart reading | Return to the start of the current chapter |
 | Double tap | Open the system exit flow |
 
 ## Development

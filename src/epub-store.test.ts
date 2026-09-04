@@ -24,6 +24,8 @@ describe('EPUB library store', () => {
     expect(stored.author).toBe(author)
     expect(stored.text).toContain(`${chapter} Readable ${version} spine text.`)
     expect(stored.originalFilename).toBe(filename)
+    expect(stored.chapters.length).toBeGreaterThan(0)
+    expect(stored.chapters[0]).toMatchObject({ title: chapter, startIndex: 0, frontMatter: false })
 
     const listed = await library.list()
     expect(listed.map(book => book.id)).toEqual([stored.id])

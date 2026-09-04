@@ -12,7 +12,7 @@ import {
 import { formatReadingFrame, formatStatus } from './display'
 import { actionForEvenHubEvent, type ReaderEventAction } from './events'
 import { persistReaderProgress, SAVE_EVERY_WORDS } from './progress'
-import { createReader, type Reader } from './reader'
+import { createReader, type Reader, type ReaderSnapshot } from './reader'
 
 const STORAGE_KEY = 'pace-reader.session.v1'
 const BRIDGE_TIMEOUT_MS = 2500
@@ -33,6 +33,7 @@ let cleanedUp = false
 let exiting = false
 let bridgeFaulted = false
 let lastSavedIndex = -1
+let restartIndex = 0
 let bridgeQueue: Promise<unknown> = Promise.resolve()
 let progressQueue: Promise<unknown> = Promise.resolve()
 
@@ -122,7 +123,8 @@ window.addEventListener('pace-reader:start', event => {
     wpm?: number
     bookId?: string
     bookTitle?: string
-    resume?: string
+    resume?: string | Partial<ReaderSnapshot>
+    restartIndex?: number
   }>).detail
   const text = detail?.text?.trim()
   if (!text) return
@@ -130,6 +132,7 @@ window.addEventListener('pace-reader:start', event => {
     bookId: detail.bookId,
     bookTitle: detail.bookTitle,
     resume: detail.resume,
+    restartIndex: detail.restartIndex,
   }).catch(reportRuntimeError)
 })
 window.addEventListener('pace-reader:ready', () => {
@@ -144,6 +147,7 @@ window.addEventListener('pace-reader:book-deleted', event => {
   sourceText = ''
   activeBookId = null
   activeBookTitle = ''
+  restartIndex = 0
   renderReader().catch(reportRuntimeError)
   syncCompanion()
 })
@@ -156,15 +160,21 @@ if (reader && !reader.getState().paused && !reader.getState().complete) schedule
 async function startReading(
   text: string,
   wpm: number,
-  book: { bookId?: string; bookTitle?: string; resume?: string } = {},
+  book: {
+    bookId?: string
+    bookTitle?: string
+    resume?: string | Partial<ReaderSnapshot>
+    restartIndex?: number
+  } = {},
 ) {
   cancelTimer()
   bridgeFaulted = false
   sourceText = text
   activeBookId = book.bookId ?? null
   activeBookTitle = book.bookTitle ?? ''
+  restartIndex = Math.max(0, book.restartIndex ?? 0)
   reader = createReader(text, { wpm, resume: book.resume })
-  if (reader.getState().complete) reader.actions.restart()
+  if (reader.getState().complete) reader.actions.jumpTo(restartIndex)
   else if (reader.getState().paused) reader.actions.resume()
   lastSavedIndex = -1
   await renderReader()
@@ -204,7 +214,7 @@ async function handleAction(action: ReaderEventAction) {
   } else if (action === 'rewind') {
     reader.actions.rewindSentence()
   } else if (action === 'restart') {
-    reader.actions.restart()
+    reader.actions.jumpTo(restartIndex)
   }
 
   await renderReader()
