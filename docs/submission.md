@@ -15,7 +15,7 @@ Checked on 2026-09-04 against the official Even Realities packaging, CLI, and ap
 - [x] Desktop simulator display, motion, tap pause/resume, and scroll speed control
 - [ ] Package ID availability check
 - [x] Packed `.ehpk` created and stamped for SDK `0.0.14` and Even app `2.2.9`
-- [ ] Public repository and passing CI
+- [x] Public repository on `master` with passing GitHub Actions CI
 
 ## Catalog gate
 
