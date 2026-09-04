@@ -1,0 +1,32 @@
+:root { color-scheme: dark; font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #111312; color: #f4f5f0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: #111312; -webkit-text-size-adjust: 100%; overscroll-behavior: none; }
+body { touch-action: manipulation; }
+button, textarea, input { font: inherit; }
+.companion-shell { width: min(100%, 560px); margin: 0 auto; padding: 26px 20px 34px; }
+.app-header, .section-heading, .reading-meta, .mirror-details { display: flex; align-items: center; }
+.app-header { gap: 12px; margin-bottom: 28px; }
+.brand-mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; background: #c7f36b; color: #111312; font: 500 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.08em; }
+.eyebrow { margin: 0 0 5px; color: #869088; font: 500 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .13em; }
+h1, h2, p { margin-top: 0; } h1 { margin-bottom: 0; font-size: 19px; letter-spacing: -.04em; } h2 { margin: 0; font-size: 18px; letter-spacing: -.04em; }
+.live-dot { margin-left: auto; width: 9px; height: 9px; border-radius: 50%; background: #c7f36b; box-shadow: 0 0 0 5px #273022; }
+.compose-card, .pace-card, .mirror-card { background: #1a1e1b; border: 1px solid #2a312c; border-radius: 20px; padding: 18px; margin-bottom: 12px; }
+.section-heading { justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.saved-status, .pace-hint { color: #829087; font-size: 11px; } .saved-status { color: #b5c3af; }
+textarea { width: 100%; min-height: 168px; padding: 0; resize: vertical; border: 0; outline: 0; background: transparent; color: #f4f5f0; font-size: 16px; line-height: 1.6; }
+textarea::placeholder { color: #616c64; }
+.reading-meta { gap: 9px; color: #9ba69d; font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.pace-card h2 { color: #c7f36b; }
+input[type='range'] { appearance: none; width: 100%; height: 4px; border-radius: 5px; background: linear-gradient(90deg, #c7f36b 50%, #374138 50%); outline: none; }
+input[type='range']::-webkit-slider-thumb { appearance: none; width: 23px; height: 23px; border: 4px solid #111312; border-radius: 50%; background: #c7f36b; box-shadow: 0 0 0 1px #c7f36b; }
+.range-labels { display: flex; justify-content: space-between; margin-top: 10px; color: #728078; font: 10px ui-monospace, SFMono-Regular, Menlo, monospace; }
+.start-button { display: flex; align-items: center; gap: 11px; width: 100%; padding: 17px 19px; margin: 4px 0 24px; border: 0; border-radius: 15px; background: #c7f36b; color: #111312; cursor: pointer; font-weight: 800; font-size: 15px; transition: transform .15s ease, filter .15s ease; }
+.start-button:active { transform: scale(.98); } .start-button:hover { filter: brightness(1.06); } .play-icon { font-size: 11px; } .button-arrow { margin-left: auto; font-size: 20px; }
+.start-button:focus-visible, input[type='range']:focus-visible, textarea:focus-visible { outline: 3px solid #85d7b4; outline-offset: 4px; }
+.mirror-card { border-color: #384434; background: #1c241b; } .mirror-text { min-height: 50px; margin-bottom: 17px; color: #d3dbce; font-size: 14px; line-height: 1.55; }
+.state-pill { padding: 5px 8px; border-radius: 20px; background: #2d382b; color: #c7f36b; font: 500 9px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; } .state-reading { background: #c7f36b; color: #111312; } .state-complete { background: #85d7b4; color: #111312; }
+.mirror-details { gap: 14px; color: #9cae98; font: 10px ui-monospace, SFMono-Regular, Menlo, monospace; } .mirror-details span:first-child { color: #c7f36b; }
+.safety-note { display: flex; gap: 10px; padding: 14px 15px; border: 1px solid #373d36; border-radius: 15px; background: #171a18; color: #aab3aa; font-size: 11px; line-height: 1.5; } .safety-note p { margin: 0; } .safety-note strong { color: #e5ebe1; } .shield-icon { color: #c7f36b; font-size: 20px; line-height: 1; }
+.privacy-note { margin: 17px 0 0; color: #5f6b62; text-align: center; font-size: 10px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+@media (min-width: 600px) { .companion-shell { padding-top: 42px; } }
