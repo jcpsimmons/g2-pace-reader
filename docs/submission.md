@@ -20,7 +20,7 @@ Checked on 2026-09-04 against the official Even Realities packaging, CLI, and ap
 ## Catalog gate
 
 - [x] Create the app in the Even Hub developer portal
-- [x] Upload the `.ehpk` as private build `0.1.0`
+- [x] Upload the `.ehpk` as build `0.1.0`
 - [x] Prepare a 24 by 24 monochrome PNG icon
 - [x] Prepare two matching 576 by 288 PNG simulator screenshots
 - [x] Prepare the portal name, tagline, category, tags, description, and change log in `store/listing.md`
@@ -31,6 +31,7 @@ Checked on 2026-09-04 against the official Even Realities packaging, CLI, and ap
 - [x] Verify and enter the developer name, public contact email, telephone, and address
 - [x] Keep the public privacy policy at `https://github.com/jcpsimmons/g2-pace-reader/blob/master/PRIVACY.md`
 - [x] Activate the private beta testing group for the owner account
+- [x] Promote build `0.1.0` to Beta for the active tester
 
 ## Real G2 beta gate
 
