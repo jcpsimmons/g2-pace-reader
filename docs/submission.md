@@ -13,24 +13,24 @@ Checked on 2026-09-04 against the official Even Realities packaging, CLI, and ap
 - [x] Special permissions: none
 - [x] Automated tests, TypeScript check, and production build
 - [x] Desktop simulator display, motion, tap pause/resume, and scroll speed control
-- [ ] Package ID availability check
+- [x] Package ID availability check; Even Hub accepted `com.jcpsimmons.pacereader`
 - [x] Packed `.ehpk` created and stamped for SDK `0.0.14` and Even app `2.2.9`
 - [x] Public repository on `master` with passing GitHub Actions CI
 
 ## Catalog gate
 
-- [ ] Create the app in the Even Hub developer portal
-- [ ] Upload the `.ehpk`
+- [x] Create the app in the Even Hub developer portal
+- [x] Upload the `.ehpk` as private build `0.1.0`
 - [x] Prepare a 24 by 24 monochrome PNG icon
 - [x] Prepare two matching 576 by 288 PNG simulator screenshots
 - [x] Prepare the portal name, tagline, category, tags, description, and change log in `store/listing.md`
-- [ ] Add the listing fields from `store/listing.md`
-- [ ] Upload `store/assets/pace-reader-icon.png`
-- [ ] Select a portal-provided cover background and upload the two glasses screenshots in `store/assets`
-- [ ] Complete the portal privacy questionnaire using `store/listing.md`
-- [ ] Confirm developer name, public contact email, telephone, and address before entering them
-- [ ] Use the public privacy policy at `https://github.com/jcpsimmons/g2-pace-reader/blob/master/PRIVACY.md`
-- [ ] Move the build from Draft to Test
+- [x] Add the listing fields from `store/listing.md`
+- [x] Confirm the portal-accepted monochrome app icon
+- [x] Select an office cover background and upload the two glasses screenshots in `store/assets`
+- [x] Complete the portal privacy questionnaire using `store/listing.md`
+- [x] Verify and enter the developer name, public contact email, telephone, and address
+- [x] Keep the public privacy policy at `https://github.com/jcpsimmons/g2-pace-reader/blob/master/PRIVACY.md`
+- [x] Activate the private beta testing group for the owner account
 
 ## Real G2 beta gate
 
